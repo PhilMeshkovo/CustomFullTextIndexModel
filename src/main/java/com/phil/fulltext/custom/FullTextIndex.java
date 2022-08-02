@@ -14,10 +14,13 @@ public class FullTextIndex {
 
     private void addStringToIndex(Document document) {
         for (String token : getTokens(document)) {
+            token = token.replaceAll("\\p{Punct}", "").trim();
+            if (token.length() == 0) {
+                continue;
+            }
             if (index.containsKey(token)) {
                 index.get(token).add(document);
-            }
-            else {
+            } else {
                 var set = new HashSet<Document>();
                 set.add(document);
                 index.put(token, set);
@@ -26,7 +29,16 @@ public class FullTextIndex {
     }
 
     public Set<Document> search(String text) {
-        return index.get(text.toLowerCase());
+        Set<Document> documentSet = new HashSet<>();
+        String[] splitedText = text.split("\\s");
+        for (String string : splitedText) {
+            string = string.replaceAll("\\p{Punct}", "").trim();
+            if (string.length() == 0) {
+                continue;
+            }
+            documentSet.addAll(index.getOrDefault(string.toLowerCase(), new HashSet<>()));
+        }
+        return documentSet;
     }
 
     private List<String> getTokens(Document document) {
